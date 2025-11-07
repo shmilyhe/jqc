@@ -1,0 +1,17 @@
+{
+    "name": "JQC",
+    "age": 18,
+    "info": {
+        "sex": "male",
+        "hobby": "football"
+    },
+    "list": [
+        "a",
+        "b",
+        "c",
+        {
+            "product": "JQC"
+        }
+    ],
+    "a":"qq"
+}

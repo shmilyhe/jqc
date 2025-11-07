@@ -1,0 +1,7 @@
+{
+    "name": "JQC",
+    "version": 1.0,
+    "enabled": true,
+    "count": 42,
+    "description": "JSON Query Component"
+}

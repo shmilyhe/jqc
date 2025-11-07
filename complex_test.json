@@ -1,0 +1,66 @@
+{
+    "name": "JQC",
+    "version": "1.0.0",
+    "description": "JSON Query Component",
+    "author": {
+        "name": "Developer",
+        "email": "dev@example.com",
+        "contact": {
+            "phone": "+86-138-0000-0000",
+            "address": {
+                "country": "China",
+                "city": "Beijing",
+                "street": "Tech Street 123"
+            }
+        }
+    },
+    "features": [
+        "json_parsing",
+        "query_engine",
+        "cli_interface"
+    ],
+    "zzz":"zzz",
+    "config": {
+        "debug": true,
+        "verbose": false,
+        "timeout": 30,
+        "max_depth": 10
+    },
+    "numbers": [1, 2, 3, 4, 5],
+    "mixed_array": [
+        "string",
+        42,
+        true,
+        false,
+        null,
+        {
+            "nested": "object",
+            "array": ["a", "b", "c"]
+        },
+        [1, 2, 3]
+    ],
+    "special_chars": "test\"quotes\\backslash\nnewline\ttab",
+    "empty_string": "",
+    "spaces": "  hello world  ",
+    "unicode": "中文测试 🚀",
+    "boolean_true": true,
+    "boolean_false": false,
+    "null_value": null,
+    "large_number": 9999999999,
+    "float_number": 3.14159,
+    "negative_number": -42,
+    "zero": 0,
+    "empty_object": {},
+    "empty_array": [],
+    "deep": {
+        "level1": {
+            "level2": {
+                "level3": {
+                    "level4": {
+                        "level5": "deep_value"
+                    }
+                }
+            }
+        }
+    }
+}
