@@ -49,6 +49,7 @@ typedef struct {
     int escape_next;
     path_result_t *results;
     int result_count;
+    int all_found;  // 标记是否所有结果都已找到
 } jqc_parser_t;
 
 // 函数声明
@@ -65,7 +66,7 @@ void on_key_start(jqc_parser_t *parser);
 void on_key_end(jqc_parser_t *parser);
 void on_value_start(jqc_parser_t *parser);
 void on_value_end(jqc_parser_t *parser);
-void callback_property(char *currpath, char *value, path_result_t *results, int result_count);
-void callback_array(char *currpath, char *value, path_result_t *results, int result_count);
+void callback_property(jqc_parser_t *parser, char *currpath, char *value);
+void callback_array(jqc_parser_t *parser, char *currpath, char *value);
 
 #endif // JQC_H

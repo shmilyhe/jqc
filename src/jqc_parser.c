@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+
 // 初始化解析器
 void jqc_init(jqc_parser_t *parser, path_result_t *results, int result_count) {
     memset(parser, 0, sizeof(jqc_parser_t));
@@ -15,11 +16,13 @@ void jqc_init(jqc_parser_t *parser, path_result_t *results, int result_count) {
     parser->escape_next = 0;
     parser->results = results;
     parser->result_count = result_count;
+    parser->all_found = 0;
 }
 
 // 清理解析器
 void jqc_cleanup(jqc_parser_t *parser) {
     // 目前没有需要清理的动态资源
+
 }
 
 // 对象开始回调
@@ -143,7 +146,7 @@ void on_value_end(jqc_parser_t *parser) {
     
     // 调用相应的回调函数
     if (parser->level > 0 && parser->level_stack[parser->level-1] == OBJECT) {
-        callback_property(parser->currpath, parser->value_buffer, parser->results, parser->result_count);
+        callback_property(parser, parser->currpath, parser->value_buffer);
         
         // 更新路径：去掉最后的键
         char *last_dot = strrchr(parser->currpath, '.');
@@ -154,7 +157,7 @@ void on_value_end(jqc_parser_t *parser) {
             parser->currpath[0] = '\0';
         }
     } else if (parser->level > 0 && parser->level_stack[parser->level-1] == ARRAY) {
-        callback_array(parser->currpath, parser->value_buffer, parser->results, parser->result_count);
+        callback_array(parser, parser->currpath, parser->value_buffer);
         
         // 更新数组索引
         char *last_bracket = strrchr(parser->currpath, '[');
@@ -170,31 +173,51 @@ void on_value_end(jqc_parser_t *parser) {
     parser->value_index=0;
 }
 
-// 属性回调函数
-void callback_property(char *currpath, char *value, path_result_t *results, int result_count) {
-    DEBUG_PRINT("属性回调: currpath='%s', value='%s'\n", currpath, value);
+// 检查是否所有结果都已找到
+int all_results_found(path_result_t *results, int result_count) {
     for (int i = 0; i < result_count; i++) {
-        DEBUG_PRINT("  比较: '%s' vs '%s'\n", currpath, results[i].search_path);
-        if (strcmp(currpath, results[i].search_path) == 0) {
+        if (!results[i].found) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// 属性回调函数
+void callback_property(jqc_parser_t *parser, char *currpath, char *value) {
+    DEBUG_PRINT("属性回调: currpath='%s', value='%s'\n", currpath, value);
+    for (int i = 0; i < parser->result_count; i++) {
+        DEBUG_PRINT("  比较: '%s' vs '%s'\n", currpath, parser->results[i].search_path);
+        if (strcmp(currpath, parser->results[i].search_path) == 0) {
             DEBUG_PRINT("  匹配成功!\n");
-            if (results[i].value) {
-                free(results[i].value);
+            if (parser->results[i].value) {
+                free(parser->results[i].value);
             }
-            results[i].value = strdup(value);
-            results[i].found = 1;
+            parser->results[i].value = strdup(value);
+            parser->results[i].found = 1;
+            
+            // 检查是否所有结果都已找到
+            if (all_results_found(parser->results, parser->result_count)) {
+                parser->all_found = 1;
+            }
         }
     }
 }
 
 // 数组回调函数
-void callback_array(char *currpath, char *value, path_result_t *results, int result_count) {
-    for (int i = 0; i < result_count; i++) {
-        if (strcmp(currpath, results[i].search_path) == 0) {
-            if (results[i].value) {
-                free(results[i].value);
+void callback_array(jqc_parser_t *parser, char *currpath, char *value) {
+    for (int i = 0; i < parser->result_count; i++) {
+        if (strcmp(currpath, parser->results[i].search_path) == 0) {
+            if (parser->results[i].value) {
+                free(parser->results[i].value);
             }
-            results[i].value = strdup(value);
-            results[i].found = 1;
+            parser->results[i].value = strdup(value);
+            parser->results[i].found = 1;
+            
+            // 检查是否所有结果都已找到
+            if (all_results_found(parser->results, parser->result_count)) {
+                parser->all_found = 1;
+            }
         }
     }
 }
@@ -203,6 +226,12 @@ void callback_array(char *currpath, char *value, path_result_t *results, int res
 int jqc_parse(jqc_parser_t *parser, const char *json_data, size_t length) {
     for (size_t i = 0; i < length; i++) {
         char c = json_data[i];
+        
+        // 检查是否所有结果都已找到，如果是则提前结束解析
+        if (parser->all_found) {
+            DEBUG_PRINT("所有结果已找到，提前结束解析\n");
+            break;
+        }
         
         //printf("char: %c\n", c);
         // 处理转义字符
