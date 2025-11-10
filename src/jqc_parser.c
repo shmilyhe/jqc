@@ -283,11 +283,11 @@ int jqc_parse(jqc_parser_t *parser, const char *json_data, size_t length) {
                 break;
                 
             case '}':
-                on_object_end(parser);
                 // 处理非字符串值的结束
                 if (parser->state == START_VALUE && parser->value_index > 0) {
                     on_value_end(parser);
                 }
+                on_object_end(parser);
                 parser->state = READY;
                 break;
                 
